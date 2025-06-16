@@ -30,6 +30,7 @@ class ReliableMessageBridge {
         }
 
         let message = Message(id: nextSeqNum, type: type, data: data)
+        print("send message", message)
         sendBuffer[nextSeqNum] = message
         sendToWebView(message)
 
@@ -51,11 +52,26 @@ class ReliableMessageBridge {
     }
 
     private func sendToWebView(_ message: Message) {
-        let json = """
-        { "id": \(message.id), "type": "\(message.type)", "data": "\(message.data)" }
-        """
-        webView.evaluateJavaScript("onNativeMessage(\(json))", completionHandler: nil)
+        let jsonObject: [String: Any] = [
+            "id": message.id,
+            "type": message.type,
+            "data": message.data
+        ]
+
+        if let jsonData = try? JSONSerialization.data(withJSONObject: jsonObject),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            // Escape special characters in string to safely embed in JS
+            let escapedJsonString = jsonString
+                .replacingOccurrences(of: "\\", with: "\\\\")
+                .replacingOccurrences(of: "\"", with: "\\\"")
+
+            let js = "onNativeMessage(JSON.parse(\"\(escapedJsonString)\"))"
+            webView.evaluateJavaScript(js, completionHandler: nil)
+        } else {
+            print("Failed to serialize JSON message")
+        }
     }
+
 
     private func startTimer(for id: Int) {
         stopTimer(for: id)
@@ -82,5 +98,17 @@ class ReliableMessageBridge {
 
     private func windowDistance(from a: Int, to b: Int) -> Int {
         return (a - b + maxSeq) % maxSeq
+    }
+    func enqueueMessage(type: String, data: String) {
+        send(type: type, data: data)
+    }
+    func receiveFromWeb(json: [String: Any]) {
+        if let ackId = json["ack"] as? Int {
+            print("Receive ACK from webview, id: ", ackId)
+            receiveAck(ackId)
+        } else {
+            // You could optionally handle incoming data from Unity here if needed
+            print("Received message from WebGL (not ACK): \(json)")
+        }
     }
 }

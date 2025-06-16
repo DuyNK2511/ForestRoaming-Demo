@@ -1,4 +1,4 @@
-﻿import UIKit
+import UIKit
 import WebKit
 import CoreMotion
 
@@ -6,7 +6,7 @@ class ViewController: UIViewController {
     var bridge: ReliableMessageBridge!
     var motionManager = CMMotionManager()
     var isTouching = false
-    var sendInterval: TimeInterval = 0.1 
+    var sendInterval: TimeInterval = 0.033
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -20,7 +20,14 @@ class ViewController: UIViewController {
 
         let webView = WKWebView(frame: view.bounds, configuration: config)
         view.addSubview(webView)
-
+        
+        // add overlay 
+        let touchOverlay = TouchTrackingView(frame: view.bounds)
+        touchOverlay.backgroundColor = .clear
+        touchOverlay.onTouchChanged = { isTouching in
+            self.isTouching = isTouching
+        }
+        view.addSubview(touchOverlay) // on top of wekview
         // Setup bridge
         bridge = ReliableMessageBridge(webView: webView)
 
