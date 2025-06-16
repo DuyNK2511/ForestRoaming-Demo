@@ -13,3 +13,22 @@ An interactive visualization of this protocol: https://media.pearsoncmg.com/ph/e
 
 # Slides
 https://www.canva.com/design/DAGqJSCOzQQ/NbjB94pb6jnD9Y2nvZ9PjQ/edit
+
+# Evaluation
+To evaluate the effectiveness of the synchronous messaging system between native iOS and WebGL, I conducted a series of tests focusing on accuracy, ordering, and reliability under different message frequencies.
+
+Accuracy and Ordering
+
+The messaging protocol is designed based on the Selective Repeat mechanism, which ensures that all messages are delivered exactly once, in correct order, and without loss.
+
+I ran experiments at three different message frequencies ,which represent various application scenarios, for approximately 10000 messages:
+
+| Frequency | Scenario                           | Reordering Errors | Message Loss |
+|-----------|------------------------------------|-------------------|---------------|
+| 1 Hz      | Low-frequency interaction          | 0                 | 0             |
+| 30 Hz     | Medium-frequency (e.g. frame sync) | 0                 | 0             |
+| 60 Hz     | High-frequency (real-time control) | 0                 | 0             |
+
+The number of message loss is counted by a variable only increase when receive next in-order message. The number of wrong order message is counted by keep tracking real order of a message and whenever the message taken out from the queue is different, increase this number by 1.
+
+These results show that the messaging layer handles synchronization reliably and consistently across all test conditions.
