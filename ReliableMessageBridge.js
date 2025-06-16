@@ -1,4 +1,4 @@
-﻿class ReliableBridgeJS {
+﻿class ReliableMessageBridge {
     constructor(sendCallback) {
         this.sendCallback = sendCallback;
         this.sendQueue = new Map();
@@ -45,8 +45,19 @@
             this._handleAck(json.ack);
         } else if (json.id !== undefined && json.type && json.data !== undefined) {
             this._handleIncomingMessage(json);
+
+            //immediately process the message after receive it
+            const latestMsg = this.receiveQueue[this.receiveQueue.length - 1];
+            if (window.unityInstance && latestMsg) {
+                window.unityInstance.SendMessage(
+                    "MessageReceiver",
+                    "HandleMessageFromBridge",
+                    JSON.stringify(latestMsg)
+                );
+            }
         }
     }
+
 
     _handleAck(id) {
         console.log("ACK received:", id);

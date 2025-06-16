@@ -1,7 +1,7 @@
 import Foundation
 import WebKit
 
-class ReliableMessenger {
+class ReliableMessageBridge {
     struct Message {
         let id: Int
         let type: String
